@@ -6,7 +6,7 @@ import time
 class Blue():
 
     devices_list = []
-    
+
     def send(self, sock, message):
         ''' send messages to bluetooth device'''
         sock.send(b"\r\n" + message + b"\r\n")
@@ -26,9 +26,10 @@ class Blue():
                 if interface == interface_name:
                     result.append(path)
         return result
-    
+
     def get_device_port(self, device_address,):
-        services = bluetooth.find_service(address=device_address)
+        uuid = "0000111e-0000-1000-8000-00805f9b34fb"
+        services = bluetooth.find_service(address=device_address, uuid=uuid)
         bluetooth.HEADSET_CLASS
         headphone_profile = ['111E', '1203']
         port = 0
@@ -53,26 +54,22 @@ class Blue():
         devices = self.filter_by_interface(objects, "org.bluez.Device1")
 
         bt_devices = []
-        
         for device in devices:
             obj = self.proxyobj(bus, device, 'org.freedesktop.DBus.Properties')
             bt_devices.append({
                 "name": str(obj.Get("org.bluez.Device1", "Name")),
                 "address": str(obj.Get("org.bluez.Device1", "Address")),
                 "port": self.get_device_port(str(obj.Get("org.bluez.Device1", "Address")))
-            })  
-
+            })
         headphone_devices = list()
         for device in bt_devices:
             if device.get("port") != 0:
                 headphone_devices.append(device)
 
         Blue.devices_list = headphone_devices.copy()
-         
         return Blue.devices_list
 
     def get_battery_level(self, device):
-        
         address = str(device.get("address"))
         port = int(device.get("port"))
 
@@ -124,11 +121,10 @@ class Blue():
                 else:
                     con_open = True
                     #print(line)
-                    
+
             socket.close()
             return blevel
 
         except OSError as e:
-            #print(f"{str(device.get("name"))} is offline", e)
+            print(e)
             pass
-
